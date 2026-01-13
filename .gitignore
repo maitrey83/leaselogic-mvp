@@ -1,0 +1,42 @@
+# Environment variables (NEVER COMMIT THESE)
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+
+# Dependencies
+node_modules
+
+# Build
+/build
+/dist
+
+# Misc
+.DS_Store
+*.log
+
+# Tokens/Secrets
+LeaseLogicToken
+LeaseLogicToken.txt
+
+# Test artifacts
+coverage/
+*.pdf
+
+# Temp upgrade files
+NODE-18-VERSION.txt
+NODE-20-UPGRADE-CHECKLIST.md
+NODE-20-UPGRADE-PLAN.md
+ROLLBACK-TO-NODE18.sh
+TESTS-NODE18-BASELINE.txt
+
+# Optional docs (tracked separately)
+requirements/
+AGENTS.md
+LeaseLogincProjectStarting.md
+backend/archive/
+backend/MANUAL-TEST-CASES.md
+backend/SUBSCRIPTION-ENDPOINT-STATUS.md
