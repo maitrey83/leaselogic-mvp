@@ -20,7 +20,10 @@ const tests = [
   'tests/integration/sessions.test.js',
   'tests/integration/user-profiles.test.js',
   'tests/integration/api-endpoints.test.js',
-  'tests/integration/audit-logs.test.js'
+  'tests/integration/audit-logs.test.js',
+  'tests/integration/data-requests-export.test.js',
+  'tests/integration/data-requests-delete.test.js',
+  'tests/integration/data-requests-api.test.js'
 ];
 
 let currentTest = 0;
