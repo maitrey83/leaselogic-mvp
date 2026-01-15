@@ -10,6 +10,7 @@ const authRoutes = require('./routes/auth');
 const userProfilesRoutes = require('./routes/userProfiles');
 const sessionsRoutes = require('./routes/sessions');
 const auditLogsRoutes = require('./routes/auditLogs');
+const dataRequestsRoutes = require('./routes/dataRequests');
 const geoRestriction = require('./middleware/geoRestriction');
 
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profiles', userProfilesRoutes);
 app.use('/api/sessions', sessionsRoutes);
 app.use('/api/audit', auditLogsRoutes);
+app.use('/api/data-requests', dataRequestsRoutes);
 
 // Root route
 app.get('/', (req, res) => {

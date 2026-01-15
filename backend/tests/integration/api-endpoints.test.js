@@ -8,6 +8,8 @@
 require('dotenv').config();
 const { supabaseAdmin } = require('../../src/config/supabase');
 
+const API_BASE = `http://127.0.0.1:${process.env.PORT || 5001}`;
+
 const colors = {
   green: '\x1b[32m',
   red: '\x1b[31m',
@@ -34,7 +36,7 @@ async function runTests() {
   try {
     // Test 5: Register new user
     log.test('Test 5: POST /api/auth/register');
-    const registerRes = await fetch('http://127.0.0.1:5000/api/auth/register', {
+    const registerRes = await fetch(`${API_BASE}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -69,7 +71,7 @@ async function runTests() {
 
     // Test 6: Login
     log.test('Test 6: POST /api/auth/login');
-    const loginRes = await fetch('http://127.0.0.1:5000/api/auth/login', {
+    const loginRes = await fetch(`${API_BASE}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -90,7 +92,7 @@ async function runTests() {
 
     // Test 7: Get current user
     log.test('Test 7: GET /api/auth/me');
-    const meRes = await fetch('http://127.0.0.1:5000/api/auth/me', {
+    const meRes = await fetch(`${API_BASE}/api/auth/me`, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
     });
     
@@ -104,7 +106,7 @@ async function runTests() {
 
     // Test 8: Update profile
     log.test('Test 8: PUT /api/auth/profile');
-    const profileRes = await fetch('http://127.0.0.1:5000/api/auth/profile', {
+    const profileRes = await fetch(`${API_BASE}/api/auth/profile`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -125,7 +127,7 @@ async function runTests() {
 
     // Test 9: Get all active legal documents
     log.test('Test 9: GET /api/legal/active');
-    const legalRes = await fetch('http://127.0.0.1:5000/api/legal/active');
+    const legalRes = await fetch(`${API_BASE}/api/legal/active`);
     const legalData = await legalRes.json();
     
     if (legalRes.ok && Array.isArray(legalData) && legalData.length === 3) {
@@ -136,7 +138,7 @@ async function runTests() {
 
     // Test 10: Get specific legal document
     log.test('Test 10: GET /api/legal/terms-of-service/active');
-    const tosRes = await fetch('http://127.0.0.1:5000/api/legal/terms-of-service/active');
+    const tosRes = await fetch(`${API_BASE}/api/legal/terms-of-service/active`);
     const tosData = await tosRes.json();
     
     if (tosRes.ok && tosData.document_name) {
@@ -147,7 +149,7 @@ async function runTests() {
 
     // Test 11: Get document history
     log.test('Test 11: GET /api/legal/privacy-policy/history');
-    const historyRes = await fetch('http://127.0.0.1:5000/api/legal/privacy-policy/history');
+    const historyRes = await fetch(`${API_BASE}/api/legal/privacy-policy/history`);
     const historyData = await historyRes.json();
     
     if (historyRes.ok && Array.isArray(historyData)) {
@@ -158,7 +160,7 @@ async function runTests() {
 
     // Test 12: Log consent
     log.test('Test 12: POST /api/consent/log');
-    const consentRes = await fetch('http://127.0.0.1:5000/api/consent/log', {
+    const consentRes = await fetch(`${API_BASE}/api/consent/log`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -193,7 +195,7 @@ async function runTests() {
 }
 
 // Check if backend is running
-fetch('http://127.0.0.1:5000/api/legal/active')
+fetch(`${API_BASE}/api/legal/active`)
   .then(() => {
     log.success('Backend is running');
     runTests();
