@@ -7,15 +7,15 @@ import validationService from '../services/ValidationService';
 // Feature flag for migration (Task 3.1)
 const USE_NEW_SYSTEM = process.env.REACT_APP_USE_NEW_DOCUMENT_SYSTEM === 'true';
 
-const NoticePreview = ({ formData }) => {
-  // Log which system is being used (Task 3.1)
+const NoticePreview = ({ formData, documentType = 'utah-3day-notice' }) => {
+  // Log which system is being used (Task 3.1/3.4)
   useEffect(() => {
     if (USE_NEW_SYSTEM) {
-      console.log('[Task 3.1] NoticePreview: Using NEW template system');
+      console.log(`[Task 3.1] NoticePreview: Using NEW template system for: ${documentType}`);
     } else {
-      console.log('[Task 3.1] NoticePreview: Using LEGACY hardcoded template');
+      console.log(`[Task 3.1] NoticePreview: Using LEGACY hardcoded template for: ${documentType}`);
     }
-  }, []);
+  }, [documentType]);
 
   /**
    * Format date for display

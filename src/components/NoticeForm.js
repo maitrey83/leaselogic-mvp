@@ -9,7 +9,7 @@ import validationService from '../services/ValidationService';
 // Feature flag for migration (Task 3.1)
 const USE_NEW_SYSTEM = process.env.REACT_APP_USE_NEW_DOCUMENT_SYSTEM === 'true';
 
-const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) => {
+const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment, documentType = 'utah-3day-notice' }) => {
   const [errors, setErrors] = useState({});
   const [isValid, setIsValid] = useState(false);
   const [showPreviewDisclaimer, setShowPreviewDisclaimer] = useState(false);
@@ -25,16 +25,16 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
   useEffect(() => {
     if (USE_NEW_SYSTEM) {
       try {
-        const doc = documentService.getDocument('utah-3day-notice');
+        const doc = documentService.getDocument(documentType);
         setDocumentDef(doc);
-        console.log('[Task 3.1] Using NEW document system');
+        console.log(`[Task 3.1] Using NEW document system for: ${documentType}`);
       } catch (error) {
-        console.error('[Task 3.1] Failed to load document definition:', error);
+        console.error(`[Task 3.1] Failed to load document definition for ${documentType}:`, error);
       }
     } else {
-      console.log('[Task 3.1] Using LEGACY hardcoded system');
+      console.log(`[Task 3.1] Using LEGACY hardcoded system for: ${documentType}`);
     }
-  }, []);
+  }, [documentType]);
 
   /**
    * Validate form data using appropriate system
@@ -93,7 +93,7 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, documentType }),
       });
 
       if (response.ok) {
@@ -102,7 +102,7 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'utah-3day-notice-final.pdf';
+        a.download = `${documentType}-final.pdf`;
 
         // Use MouseEvent to force download
         const clickEvent = new MouseEvent('click', {
@@ -135,7 +135,7 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, documentType }),
       });
 
       if (response.ok) {
@@ -143,7 +143,7 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'utah-3day-notice-preview.pdf';
+        a.download = `${documentType}-preview.pdf`;
 
         const clickEvent = new MouseEvent('click', {
           view: window,
@@ -165,6 +165,19 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
       console.error('PDF download error:', error);
       alert('Failed to generate PDF. Please check your connection.');
     }
+  };
+
+  // Get document price (Task 3.4)
+  const getDocumentPrice = () => {
+    if (documentDef && documentDef.pricing) {
+      return documentDef.pricing.final;
+    }
+    // Default prices
+    const prices = {
+      'utah-3day-notice': 9.99,
+      'utah-rent-increase': 7.99
+    };
+    return prices[documentType] || 9.99;
   };
 
   const handleSubmit = (e) => {
@@ -424,7 +437,7 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
                 onClick={() => setShowPurchaseDisclaimer(true)}
                 className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               >
-                Purchase Final PDF - $9.99
+                Purchase Final PDF - ${getDocumentPrice().toFixed(2)}
               </button>
 
               <button

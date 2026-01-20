@@ -124,12 +124,13 @@ describe('TemplateEngine', () => {
 
     test('should render preview with watermark', () => {
       const html = TemplateEngine.render('utah-rent-increase-preview-v1', mockDataRentIncrease);
-      expect(html).toContain('DRAFT - NOT LEGAL');
+      expect(html).toContain('PREVIEW');
+      expect(html).toContain('NOT FOR LEGAL USE');
       expect(html).toContain('NOTICE OF RENT INCREASE');
     });
 
     test('should include optional reason if provided', () => {
-      const dataWithReason = { ...mockDataRentIncrease, reason: 'Market rate adjustment' };
+      const dataWithReason = { ...mockDataRentIncrease, reasonForIncrease: 'Market rate adjustment' };
       const html = TemplateEngine.render('utah-rent-increase-v1', dataWithReason);
       expect(html).toContain('Market rate adjustment');
     });
