@@ -10,10 +10,14 @@ class ValidationService {
 
   /**
    * Validate a single field
+   * Updated for Task 3.1: Uses custom messages from document definition
    */
   validateField(value, rules = {}) {
+    // Normalize value - treat empty strings as falsy
+    const normalizedValue = typeof value === 'string' ? value.trim() : value;
+
     // Required validation
-    if (rules.required && !value) {
+    if (rules.required && !normalizedValue) {
       return {
         valid: false,
         message: rules.message || 'This field is required'
@@ -21,14 +25,14 @@ class ValidationService {
     }
 
     // Skip other validations if empty and not required
-    if (!value && !rules.required) {
+    if (!normalizedValue && !rules.required) {
       return { valid: true };
     }
 
     // Pattern validation
     if (rules.pattern) {
       const regex = new RegExp(rules.pattern);
-      if (!regex.test(value)) {
+      if (!regex.test(normalizedValue)) {
         return {
           valid: false,
           message: rules.message || 'Invalid format'
@@ -37,40 +41,46 @@ class ValidationService {
     }
 
     // Min length validation
-    if (rules.minLength && value.length < rules.minLength) {
+    if (rules.minLength && normalizedValue.length < rules.minLength) {
       return {
         valid: false,
-        message: `Minimum length is ${rules.minLength} characters`
+        message: rules.message || `Minimum length is ${rules.minLength} characters`
       };
     }
 
     // Max length validation
-    if (rules.maxLength && value.length > rules.maxLength) {
+    if (rules.maxLength && normalizedValue.length > rules.maxLength) {
       return {
         valid: false,
-        message: `Maximum length is ${rules.maxLength} characters`
+        message: rules.message || `Maximum length is ${rules.maxLength} characters`
       };
     }
 
-    // Min value validation
-    if (rules.min !== undefined && parseFloat(value) < rules.min) {
-      return {
-        valid: false,
-        message: `Minimum value is ${rules.min}`
-      };
+    // Min value validation (for currency/number fields)
+    if (rules.min !== undefined) {
+      const numValue = parseFloat(normalizedValue);
+      if (isNaN(numValue) || numValue < rules.min) {
+        return {
+          valid: false,
+          message: rules.message || `Minimum value is ${rules.min}`
+        };
+      }
     }
 
     // Max value validation
-    if (rules.max !== undefined && parseFloat(value) > rules.max) {
-      return {
-        valid: false,
-        message: `Maximum value is ${rules.max}`
-      };
+    if (rules.max !== undefined) {
+      const numValue = parseFloat(normalizedValue);
+      if (isNaN(numValue) || numValue > rules.max) {
+        return {
+          valid: false,
+          message: rules.message || `Maximum value is ${rules.max}`
+        };
+      }
     }
 
     // Custom validator
     if (rules.custom && this.customValidators[rules.custom]) {
-      return this.customValidators[rules.custom](value, rules);
+      return this.customValidators[rules.custom](normalizedValue, rules);
     }
 
     return { valid: true };

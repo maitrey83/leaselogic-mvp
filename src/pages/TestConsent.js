@@ -108,7 +108,7 @@ function TestConsent() {
       <div style={{ marginTop: '40px', padding: '20px', backgroundColor: '#e7f3ff', borderRadius: '8px' }}>
         <h3>System Status</h3>
         <ul>
-          <li>✅ Backend API: http://localhost:5000</li>
+          <li>✅ Backend API: http://localhost:5001</li>
           <li>✅ Supabase: Connected</li>
           <li>✅ IP Capture: Server-side</li>
           <li>✅ Policy Version: v1.3</li>

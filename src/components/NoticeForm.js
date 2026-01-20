@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { validateForm, formatCurrency, formatPhone } from '../utils/validation';
+import { validateForm as validateFormLegacy, formatCurrency, formatPhone } from '../utils/validation';
 import DownloadDisclaimer from './DownloadDisclaimer';
+
+// New system imports (Task 3.1)
+import documentService from '../services/DocumentService';
+import validationService from '../services/ValidationService';
+
+// Feature flag for migration (Task 3.1)
+const USE_NEW_SYSTEM = process.env.REACT_APP_USE_NEW_DOCUMENT_SYSTEM === 'true';
 
 const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) => {
   const [errors, setErrors] = useState({});
@@ -9,7 +16,40 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
   const [showFinalDisclaimer, setShowFinalDisclaimer] = useState(false);
   const [showPurchaseDisclaimer, setShowPurchaseDisclaimer] = useState(false);
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  // New system state (Task 3.1)
+  const [documentDef, setDocumentDef] = useState(null);
+
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
+  // Load document definition when using new system
+  useEffect(() => {
+    if (USE_NEW_SYSTEM) {
+      try {
+        const doc = documentService.getDocument('utah-3day-notice');
+        setDocumentDef(doc);
+        console.log('[Task 3.1] Using NEW document system');
+      } catch (error) {
+        console.error('[Task 3.1] Failed to load document definition:', error);
+      }
+    } else {
+      console.log('[Task 3.1] Using LEGACY hardcoded system');
+    }
+  }, []);
+
+  /**
+   * Validate form data using appropriate system
+   * Task 3.1: Feature flag controls which validation is used
+   */
+  const validateForm = (data) => {
+    if (USE_NEW_SYSTEM && documentDef) {
+      // New system: Use ValidationService with document definition
+      const result = validationService.validateForm(data, documentDef.fields);
+      return result.errors;
+    } else {
+      // Legacy system: Use hardcoded validation
+      return validateFormLegacy(data);
+    }
+  };
 
   const handlePurchase = () => {
     setShowPurchaseDisclaimer(false);
@@ -20,7 +60,7 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
     const { name, value } = e.target;
     let formattedValue = value;
 
-    // Format specific fields
+    // Format specific fields (same logic for both systems)
     if (name === 'pastDueAmount') {
       // Allow user to type freely, just clean the input
       formattedValue = value.replace(/[^\d.]/g, '');
@@ -35,7 +75,7 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
 
     setFormData(newFormData);
 
-    // Real-time validation
+    // Real-time validation using feature-flagged validator
     const newErrors = validateForm(newFormData);
     setErrors(newErrors);
     setIsValid(Object.keys(newErrors).length === 0);
@@ -59,25 +99,25 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        
+
         const a = document.createElement('a');
         a.href = url;
         a.download = 'utah-3day-notice-final.pdf';
-        
+
         // Use MouseEvent to force download
         const clickEvent = new MouseEvent('click', {
           view: window,
           bubbles: true,
           cancelable: true
         });
-        
+
         a.dispatchEvent(clickEvent);
-        
+
         // Cleanup
         setTimeout(() => {
           window.URL.revokeObjectURL(url);
         }, 100);
-        
+
         setShowFinalDisclaimer(false);
       } else {
         alert('Failed to generate final PDF. Please try again.');
@@ -104,19 +144,19 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
         const a = document.createElement('a');
         a.href = url;
         a.download = 'utah-3day-notice-preview.pdf';
-        
+
         const clickEvent = new MouseEvent('click', {
           view: window,
           bubbles: true,
           cancelable: true
         });
-        
+
         a.dispatchEvent(clickEvent);
-        
+
         setTimeout(() => {
           window.URL.revokeObjectURL(url);
         }, 100);
-        
+
         setShowPreviewDisclaimer(false);
       } else {
         alert('Failed to generate PDF. Please try again.');
@@ -131,17 +171,23 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
     e.preventDefault();
     const formErrors = validateForm(formData);
     setErrors(formErrors);
-    
+
     if (Object.keys(formErrors).length === 0) {
       console.log('Form is valid, preview is live!');
       setShowPreview(true);
     }
   };
 
+  // Helper to get field error (works for both systems)
+  const getError = (fieldName) => errors[fieldName];
+
+  // Helper to check if field has error
+  const hasError = (fieldName) => !!errors[fieldName];
+
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
-        
+
         {/* Property Address Section */}
         <div className="border-b pb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Property Address</h2>
@@ -156,11 +202,11 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
                 value={formData.street}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.street ? 'border-red-500' : 'border-gray-300'
+                  hasError('street') ? 'border-red-500' : 'border-gray-300'
                 }`}
                 required
               />
-              {errors.street && <p className="text-red-500 text-xs mt-1">{errors.street}</p>}
+              {hasError('street') && <p className="text-red-500 text-xs mt-1">{getError('street')}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -172,11 +218,11 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
                 value={formData.city}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.city ? 'border-red-500' : 'border-gray-300'
+                  hasError('city') ? 'border-red-500' : 'border-gray-300'
                 }`}
                 required
               />
-              {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
+              {hasError('city') && <p className="text-red-500 text-xs mt-1">{getError('city')}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -200,11 +246,11 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
                 value={formData.zipCode}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.zipCode ? 'border-red-500' : 'border-gray-300'
+                  hasError('zipCode') ? 'border-red-500' : 'border-gray-300'
                 }`}
                 required
               />
-              {errors.zipCode && <p className="text-red-500 text-xs mt-1">{errors.zipCode}</p>}
+              {hasError('zipCode') && <p className="text-red-500 text-xs mt-1">{getError('zipCode')}</p>}
             </div>
           </div>
         </div>
@@ -224,11 +270,11 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
                 onChange={handleChange}
                 placeholder="Enter tenant names (separate multiple with commas)"
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.tenantNames ? 'border-red-500' : 'border-gray-300'
+                  hasError('tenantNames') ? 'border-red-500' : 'border-gray-300'
                 }`}
                 required
               />
-              {errors.tenantNames && <p className="text-red-500 text-xs mt-1">{errors.tenantNames}</p>}
+              {hasError('tenantNames') && <p className="text-red-500 text-xs mt-1">{getError('tenantNames')}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -240,11 +286,11 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
                 value={formData.landlordName}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.landlordName ? 'border-red-500' : 'border-gray-300'
+                  hasError('landlordName') ? 'border-red-500' : 'border-gray-300'
                 }`}
                 required
               />
-              {errors.landlordName && <p className="text-red-500 text-xs mt-1">{errors.landlordName}</p>}
+              {hasError('landlordName') && <p className="text-red-500 text-xs mt-1">{getError('landlordName')}</p>}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -257,11 +303,11 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
                   value={formData.landlordPhone}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.landlordPhone ? 'border-red-500' : 'border-gray-300'
+                    hasError('landlordPhone') ? 'border-red-500' : 'border-gray-300'
                   }`}
                   required
                 />
-                {errors.landlordPhone && <p className="text-red-500 text-xs mt-1">{errors.landlordPhone}</p>}
+                {hasError('landlordPhone') && <p className="text-red-500 text-xs mt-1">{getError('landlordPhone')}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -273,11 +319,11 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
                   value={formData.landlordEmail}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.landlordEmail ? 'border-red-500' : 'border-gray-300'
+                    hasError('landlordEmail') ? 'border-red-500' : 'border-gray-300'
                   }`}
                   required
                 />
-                {errors.landlordEmail && <p className="text-red-500 text-xs mt-1">{errors.landlordEmail}</p>}
+                {hasError('landlordEmail') && <p className="text-red-500 text-xs mt-1">{getError('landlordEmail')}</p>}
               </div>
             </div>
           </div>
@@ -300,12 +346,12 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
                   onChange={handleChange}
                   placeholder="0.00"
                   className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.pastDueAmount ? 'border-red-500' : 'border-gray-300'
+                    hasError('pastDueAmount') ? 'border-red-500' : 'border-gray-300'
                   }`}
                   required
                 />
               </div>
-              {errors.pastDueAmount && <p className="text-red-500 text-xs mt-1">{errors.pastDueAmount}</p>}
+              {hasError('pastDueAmount') && <p className="text-red-500 text-xs mt-1">{getError('pastDueAmount')}</p>}
               <p className="text-xs text-gray-500 mt-1">
                 Per Utah law, only include rent. Do not include late fees, utilities, or other charges.
               </p>
@@ -320,11 +366,11 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
                 value={formData.originalDueDate}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.originalDueDate ? 'border-red-500' : 'border-gray-300'
+                  hasError('originalDueDate') ? 'border-red-500' : 'border-gray-300'
                 }`}
                 required
               />
-              {errors.originalDueDate && <p className="text-red-500 text-xs mt-1">{errors.originalDueDate}</p>}
+              {hasError('originalDueDate') && <p className="text-red-500 text-xs mt-1">{getError('originalDueDate')}</p>}
             </div>
           </div>
         </div>
@@ -342,10 +388,10 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
               value={formData.noticeDate}
               onChange={handleChange}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.noticeDate ? 'border-red-500' : 'border-gray-300'
+                hasError('noticeDate') ? 'border-red-500' : 'border-gray-300'
               }`}
             />
-            {errors.noticeDate && <p className="text-red-500 text-xs mt-1">{errors.noticeDate}</p>}
+            {hasError('noticeDate') && <p className="text-red-500 text-xs mt-1">{getError('noticeDate')}</p>}
           </div>
         </div>
 
@@ -355,14 +401,14 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
             type="submit"
             disabled={!isValid}
             className={`w-full py-3 px-4 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              isValid 
-                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+              isValid
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
             Generate Preview
           </button>
-          
+
           {isValid && (
             <>
               <button
@@ -372,7 +418,7 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
               >
                 Download PDF Preview (Watermarked)
               </button>
-              
+
               <button
                 type="button"
                 onClick={() => setShowPurchaseDisclaimer(true)}
@@ -380,7 +426,7 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment }) =
               >
                 Purchase Final PDF - $9.99
               </button>
-              
+
               <button
                 type="button"
                 onClick={() => setShowFinalDisclaimer(true)}

@@ -34,7 +34,8 @@ class PdfGenerator {
       });
 
       const pdfBuffer = await page.pdf(pdfOptions);
-      return pdfBuffer;
+      // Ensure we return a proper Node.js Buffer (Puppeteer may return Uint8Array)
+      return Buffer.from(pdfBuffer);
     } catch (error) {
       console.error('PDF generation error:', error);
       throw new Error('Failed to generate PDF: ' + error.message);

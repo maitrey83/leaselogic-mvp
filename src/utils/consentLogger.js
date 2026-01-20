@@ -4,7 +4,7 @@
  * Server-side logging with IP capture for legal compliance
  */
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 export const logConsent = async (consentType, documentType = 'utah-3day-pay-or-quit') => {
   const consentData = {

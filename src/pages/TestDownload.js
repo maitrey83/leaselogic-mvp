@@ -4,7 +4,7 @@ function TestDownload() {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
   const testData = {
     propertyAddress: "123 Test Street",
