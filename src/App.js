@@ -16,6 +16,51 @@ import './index.css';
 
 // Feature flag for document selector (Task 3.4)
 const DOCUMENT_SELECTOR_ENABLED = process.env.REACT_APP_DOCUMENT_SELECTOR_ENABLED === 'true';
+const USE_NEW_DOCUMENT_SYSTEM = process.env.REACT_APP_USE_NEW_DOCUMENT_SYSTEM === 'true';
+
+/**
+ * Phase 3B: Get initial formData based on document type
+ * Dynamically generates formData from document definition when new system is enabled
+ */
+const getInitialFormData = (documentType = 'utah-3day-notice') => {
+  if (USE_NEW_DOCUMENT_SYSTEM) {
+    try {
+      const doc = documentService.getDocument(documentType);
+      const initialData = {};
+
+      // Generate initial data from field definitions
+      doc.fields.forEach(field => {
+        if (field.defaultValue === 'today') {
+          initialData[field.id] = new Date().toISOString().split('T')[0];
+        } else if (field.defaultValue) {
+          initialData[field.id] = field.defaultValue;
+        } else {
+          initialData[field.id] = '';
+        }
+      });
+
+      return initialData;
+    } catch (error) {
+      console.error('[Phase 3B] Failed to get initial form data:', error);
+      // Fall through to legacy
+    }
+  }
+
+  // Legacy system: hard-coded 3-day notice data
+  return {
+    street: '',
+    city: '',
+    state: 'UT',
+    zipCode: '',
+    tenantNames: '',
+    landlordName: '',
+    landlordPhone: '',
+    landlordEmail: '',
+    pastDueAmount: '',
+    originalDueDate: '',
+    noticeDate: new Date().toISOString().split('T')[0]
+  };
+};
 
 // Document titles mapping
 const getDocumentTitle = (documentType) => {
@@ -159,24 +204,23 @@ function FormPage({ formData, setFormData, setShowPreview, showPayment, setShowP
 // Wrapper component to extract documentType from URL params
 function FormPageWrapper(props) {
   const { documentType } = useParams();
-  return <FormPage {...props} documentType={documentType || 'utah-3day-notice'} />;
+  const currentDocType = documentType || 'utah-3day-notice';
+
+  // Phase 3B: Reset formData when documentType changes
+  React.useEffect(() => {
+    if (USE_NEW_DOCUMENT_SYSTEM) {
+      const newFormData = getInitialFormData(currentDocType);
+      props.setFormData(newFormData);
+      console.log(`[Phase 3B] Reset formData for document: ${currentDocType}`);
+    }
+  }, [currentDocType]);
+
+  return <FormPage {...props} documentType={currentDocType} />;
 }
 
 function App() {
-  const [formData, setFormData] = useState({
-    street: '',
-    city: '',
-    state: 'UT',
-    zipCode: '',
-    tenantNames: '',
-    landlordName: '',
-    landlordPhone: '',
-    landlordEmail: '',
-    pastDueAmount: '',
-    originalDueDate: '',
-    noticeDate: new Date().toISOString().split('T')[0]
-  });
-
+  // Phase 3B: Use dynamic formData initialization
+  const [formData, setFormData] = useState(getInitialFormData('utah-3day-notice'));
   const [showPreview, setShowPreview] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);

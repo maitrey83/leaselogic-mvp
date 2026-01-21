@@ -80,6 +80,9 @@ const NoticePreview = ({ formData, documentType = 'utah-3day-notice' }) => {
       .join(', ') || '[Property Address]';
   };
 
+  // Phase 3B: Check if this is a rent increase notice
+  const isRentIncrease = documentType === 'utah-rent-increase';
+
   // Both systems render the same React template for identical output
   // Task 3.1: TemplateService can be enhanced later to render HTML templates
   return (
@@ -108,11 +111,17 @@ const NoticePreview = ({ formData, documentType = 'utah-3day-notice' }) => {
 
         <hr className="border-gray-400 mb-6" />
 
-        {/* Title */}
+        {/* Title - Dynamic based on document type */}
         <h1 className="text-xl font-bold text-center mb-6 uppercase">
-          NOTICE TO PAY RENT OR VACATE PREMISES
+          {isRentIncrease
+            ? 'NOTICE OF RENT INCREASE'
+            : 'NOTICE TO PAY RENT OR VACATE PREMISES'}
         </h1>
-        <p className="text-center text-sm mb-6">(Utah Code § 78B-6-802)</p>
+        <p className="text-center text-sm mb-6">
+          {isRentIncrease
+            ? '(Utah Code § 57-22-4, § 57-22-5)'
+            : '(Utah Code § 78B-6-802)'}
+        </p>
 
         {/* Recipient Info */}
         <div className="mb-6">
@@ -121,6 +130,32 @@ const NoticePreview = ({ formData, documentType = 'utah-3day-notice' }) => {
           <p><strong>DATE OF NOTICE:</strong> {formatDate(formData.noticeDate)}</p>
         </div>
 
+        {/* Phase 3B: Rent Increase Preview */}
+        {isRentIncrease && (
+          <div className="mb-6 p-6 bg-blue-50 border-l-4 border-blue-500">
+            <h2 className="font-bold mb-4 text-blue-900">Rent Increase Summary</h2>
+            <div className="space-y-2 mb-4">
+              <p><strong>Current Rent:</strong> {formatCurrency(formData.currentRent)}</p>
+              <p><strong>New Rent:</strong> {formatCurrency(formData.newRent)}</p>
+              <p><strong>Increase:</strong> {formatCurrency((formData.newRent || 0) - (formData.currentRent || 0))}</p>
+              <p><strong>Effective Date:</strong> {formatDate(formData.effectiveDate)}</p>
+              <p><strong>Lease Type:</strong> {formData.leaseType === 'month-to-month' ? 'Month-to-Month' : 'Week-to-Week'}</p>
+            </div>
+            {formData.reasonForIncrease && (
+              <div className="mt-4">
+                <p className="font-semibold mb-1">Reason for Increase:</p>
+                <p className="text-sm">{formData.reasonForIncrease}</p>
+              </div>
+            )}
+            <p className="text-sm text-blue-800 mt-4">
+              <strong>Note:</strong> Download the PDF to see the complete formatted legal notice.
+            </p>
+          </div>
+        )}
+
+        {/* 3-Day Notice Specific Content - Only show for 3-day notice */}
+        {!isRentIncrease && (
+        <>
         {/* Demand for Payment */}
         <div className="mb-6">
           <h2 className="font-bold mb-3">Demand for Payment</h2>
@@ -183,6 +218,10 @@ const NoticePreview = ({ formData, documentType = 'utah-3day-notice' }) => {
         </div>
 
         <hr className="border-gray-400 my-6" />
+
+        </>
+        )}
+        {/* End 3-Day Notice Specific Content */}
 
         {/* Certificate of Service */}
         <div>

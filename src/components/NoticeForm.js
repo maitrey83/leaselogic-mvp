@@ -6,6 +6,9 @@ import DownloadDisclaimer from './DownloadDisclaimer';
 import documentService from '../services/DocumentService';
 import validationService from '../services/ValidationService';
 
+// Phase 3B imports (Task 3.4) - Dynamic form rendering
+import SectionRenderer from './fields/SectionRenderer';
+
 // Feature flag for migration (Task 3.1)
 const USE_NEW_SYSTEM = process.env.REACT_APP_USE_NEW_DOCUMENT_SYSTEM === 'true';
 
@@ -197,12 +200,85 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment, doc
   // Helper to check if field has error
   const hasError = (fieldName) => !!errors[fieldName];
 
+  /**
+   * Phase 3B: Group fields by section for dynamic rendering
+   * Groups document definition fields into logical sections
+   */
+  const groupFieldsBySection = (fields) => {
+    const sections = {
+      property: {
+        title: 'Property Address',
+        fields: [],
+        description: null
+      },
+      parties: {
+        title: 'Tenant & Landlord Information',
+        fields: [],
+        description: null
+      },
+      financial: {
+        title: 'Financial Information',
+        fields: [],
+        description: null
+      },
+      dates: {
+        title: 'Important Dates',
+        fields: [],
+        description: null
+      },
+      additional: {
+        title: 'Additional Information',
+        fields: [],
+        description: null
+      }
+    };
+
+    fields.forEach(field => {
+      const group = field.group || 'additional';
+      if (sections[group]) {
+        sections[group].fields.push(field);
+      }
+    });
+
+    // Filter out empty sections and return as array
+    return Object.entries(sections)
+      .filter(([_, section]) => section.fields.length > 0)
+      .map(([key, section]) => ({ key, ...section }));
+  };
+
+  /**
+   * Phase 3B: Handle field changes for dynamic forms
+   * Works with both legacy and new system
+   */
+  const handleFieldChange = (fieldId, value) => {
+    handleChange({ target: { name: fieldId, value } });
+  };
+
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
 
-        {/* Property Address Section */}
-        <div className="border-b pb-6">
+        {/* Phase 3B: Dynamic rendering based on feature flag */}
+        {USE_NEW_SYSTEM && documentDef ? (
+          // NEW SYSTEM: Render fields dynamically from document definition
+          <>
+            {groupFieldsBySection(documentDef.fields).map((section) => (
+              <SectionRenderer
+                key={section.key}
+                title={section.title}
+                fields={section.fields}
+                formData={formData}
+                errors={errors}
+                onChange={handleFieldChange}
+                description={section.description}
+              />
+            ))}
+          </>
+        ) : (
+          // LEGACY SYSTEM: Hard-coded fields for backward compatibility
+          <>
+            {/* Property Address Section */}
+            <div className="border-b pb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Property Address</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
@@ -407,8 +483,10 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment, doc
             {hasError('noticeDate') && <p className="text-red-500 text-xs mt-1">{getError('noticeDate')}</p>}
           </div>
         </div>
+          </>
+        )}
 
-        {/* Submit Button */}
+        {/* Submit buttons - same for both legacy and new system */}
         <div className="pt-6 space-y-3">
           <button
             type="submit"
