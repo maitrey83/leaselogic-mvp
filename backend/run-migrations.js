@@ -14,9 +14,9 @@ async function checkMigrations() {
   console.log(`${c.b}🔍 Migration Status Check${c.x}\n`);
 
   // Check which tables exist
-  const tables = ['consent_logs', 'legal_documents', 'audit_logs', 'data_requests', 'users', 'user_profiles', 'sessions'];
+  const tables = ['consent_logs', 'legal_documents', 'audit_logs', 'data_requests', 'users', 'user_profiles', 'sessions', 'properties', 'notices', 'notice_templates'];
   const status = {};
-  
+
   for (const table of tables) {
     const { error } = await supabaseAdmin.from(table).select('*').limit(1);
     status[table] = !error;
@@ -77,8 +77,38 @@ async function checkMigrations() {
       } else {
         migrationStatus = `${c.g}✅ Applied (audit_logs table exists)${c.x}`;
       }
+    } else if (file.includes('009')) {
+      if (!status.data_requests) {
+        migrationStatus = `${c.r}❌ NEEDS TO RUN${c.x}`;
+        pending.push(file);
+      } else {
+        migrationStatus = `${c.g}✅ Applied (data_requests table exists)${c.x}`;
+      }
+    } else if (file.includes('010')) {
+      if (!status.properties) {
+        migrationStatus = `${c.r}❌ NEEDS TO RUN - properties table${c.x}`;
+        pending.push(file);
+      } else {
+        migrationStatus = `${c.g}✅ Applied (properties table exists)${c.x}`;
+      }
+    } else if (file.includes('011')) {
+      migrationStatus = `${c.g}✅ Applied (audit trigger for properties)${c.x}`;
+    } else if (file.includes('012')) {
+      if (!status.notices) {
+        migrationStatus = `${c.r}❌ NEEDS TO RUN - notices table${c.x}`;
+        pending.push(file);
+      } else {
+        migrationStatus = `${c.g}✅ Applied (notices table exists)${c.x}`;
+      }
+    } else if (file.includes('013')) {
+      if (!status.notice_templates) {
+        migrationStatus = `${c.r}❌ NEEDS TO RUN - notice_templates table${c.x}`;
+        pending.push(file);
+      } else {
+        migrationStatus = `${c.g}✅ Applied (notice_templates table exists)${c.x}`;
+      }
     }
-    
+
     console.log(`  ${num}. ${file}`);
     console.log(`     ${migrationStatus}\n`);
   }

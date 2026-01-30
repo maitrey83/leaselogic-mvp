@@ -12,9 +12,18 @@ import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import CookiePolicy from './pages/CookiePolicy';
 import documentService from './services/DocumentService';
+
+// Task 3.8: Authentication components
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+
 import './index.css';
 
 // Feature flag for document selector (Task 3.4)
+// Task 3.8: Disabled to use authentication flow
 const DOCUMENT_SELECTOR_ENABLED = process.env.REACT_APP_DOCUMENT_SELECTOR_ENABLED === 'true';
 const USE_NEW_DOCUMENT_SYSTEM = process.env.REACT_APP_USE_NEW_DOCUMENT_SYSTEM === 'true';
 
@@ -85,19 +94,22 @@ function LegalPageLayout({ children }) {
 // Main form page component
 function FormPage({ formData, setFormData, setShowPreview, showPayment, setShowPayment, paymentComplete, setPaymentComplete, documentType = 'utah-3day-notice' }) {
   const navigate = useNavigate();
+  const [downloadSuccess, setDownloadSuccess] = React.useState(false);
 
   const handlePaymentSuccess = () => {
     setPaymentComplete(true);
     setShowPayment(false);
-    alert('Payment successful! Your final PDF has been downloaded.');
+    setDownloadSuccess(true);
+    setTimeout(() => setDownloadSuccess(false), 5000);
   };
 
   const handlePaymentCancel = () => {
     setShowPayment(false);
   };
 
-  const handleBackToSelector = () => {
-    navigate('/');
+  const handleDownloadSuccess = () => {
+    setDownloadSuccess(true);
+    setTimeout(() => setDownloadSuccess(false), 5000);
   };
 
   if (showPayment) {
@@ -126,18 +138,16 @@ function FormPage({ formData, setFormData, setShowPreview, showPayment, setShowP
       <CookieConsent />
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
-          {/* Back button - only show if document selector is enabled */}
-          {DOCUMENT_SELECTOR_ENABLED && (
-            <button
-              onClick={handleBackToSelector}
-              className="mb-4 flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to Document Selection
-            </button>
-          )}
+          {/* Back to Dashboard button - always visible in authenticated flow */}
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="mb-4 flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Dashboard
+          </button>
 
           <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">
             {title}
@@ -146,9 +156,9 @@ function FormPage({ formData, setFormData, setShowPreview, showPayment, setShowP
             Document Template Generator - Not Legal Advice
           </p>
 
-          {paymentComplete && (
+          {downloadSuccess && (
             <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-md text-center">
-              Payment successful! Your final PDF has been downloaded.
+              <strong>Success!</strong> Your notice has been generated and downloaded.
             </div>
           )}
 
@@ -161,6 +171,7 @@ function FormPage({ formData, setFormData, setShowPreview, showPayment, setShowP
                 setShowPreview={setShowPreview}
                 setShowPayment={setShowPayment}
                 documentType={documentType}
+                onDownloadSuccess={handleDownloadSuccess}
               />
             </div>
 
@@ -237,48 +248,62 @@ function App() {
   };
 
   return (
-    <Routes>
-      {/* Legal pages */}
-      <Route path="/terms-of-service" element={
-        <LegalPageLayout>
-          <TermsOfService />
-        </LegalPageLayout>
-      } />
-      <Route path="/privacy-policy" element={
-        <LegalPageLayout>
-          <PrivacyPolicy />
-        </LegalPageLayout>
-      } />
-      <Route path="/cookie-policy" element={
-        <LegalPageLayout>
-          <CookiePolicy />
-        </LegalPageLayout>
-      } />
+    <AuthProvider>
+      <Routes>
+        {/* Public Routes - Authentication */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-      {/* Document form route with dynamic document type */}
-      <Route path="/form/:documentType" element={
-        <GeoRestriction>
-          <CookieConsent />
-          <FormPageWrapper {...formProps} />
-        </GeoRestriction>
-      } />
+        {/* Public Routes - Legal pages */}
+        <Route path="/terms-of-service" element={
+          <LegalPageLayout>
+            <TermsOfService />
+          </LegalPageLayout>
+        } />
+        <Route path="/terms" element={<Navigate to="/terms-of-service" replace />} />
+        <Route path="/privacy-policy" element={
+          <LegalPageLayout>
+            <PrivacyPolicy />
+          </LegalPageLayout>
+        } />
+        <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
+        <Route path="/cookie-policy" element={
+          <LegalPageLayout>
+            <CookiePolicy />
+          </LegalPageLayout>
+        } />
 
-      {/* Home page - Document selector or direct form based on feature flag */}
-      <Route path="/" element={
-        DOCUMENT_SELECTOR_ENABLED ? (
-          <GeoRestriction>
-            <CookieConsent />
-            <DocumentSelector />
-            <Footer />
-          </GeoRestriction>
-        ) : (
-          <FormPage {...formProps} documentType="utah-3day-notice" />
-        )
-      } />
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          {/* Dashboard */}
+          <Route path="/dashboard" element={<Dashboard />} />
 
-      {/* Catch-all redirect to home */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+          {/* Document form route with dynamic document type */}
+          <Route path="/form/:documentType" element={
+            <GeoRestriction>
+              <CookieConsent />
+              <FormPageWrapper {...formProps} />
+            </GeoRestriction>
+          } />
+        </Route>
+
+        {/* Home page - Document selector or redirect to dashboard */}
+        <Route path="/" element={
+          DOCUMENT_SELECTOR_ENABLED ? (
+            <GeoRestriction>
+              <CookieConsent />
+              <DocumentSelector />
+              <Footer />
+            </GeoRestriction>
+          ) : (
+            <Navigate to="/dashboard" replace />
+          )
+        } />
+
+        {/* Catch-all redirect to dashboard */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </AuthProvider>
   );
 }
 

@@ -45,8 +45,21 @@ async function runTests() {
         fullName: 'Test User'
       })
     });
-    
-    const registerData = await registerRes.json();
+
+    let registerData;
+    try {
+      const contentType = registerRes.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        registerData = await registerRes.json();
+      } else {
+        const text = await registerRes.text();
+        log.error(`Expected JSON, got: ${text.substring(0, 200)}`);
+        return;
+      }
+    } catch (error) {
+      log.error(`Failed to parse response: ${error.message}`);
+      return;
+    }
     
     if (registerRes.ok && registerData.user) {
       userId = registerData.user.id;

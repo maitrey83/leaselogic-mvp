@@ -40,12 +40,12 @@ const CookieConsent = () => {
       version: '1.0'
     };
     localStorage.setItem('leaselogic_cookie_consent', JSON.stringify(consentData));
-    
+
     // Set cookie for 1 year
     const expires = new Date();
     expires.setFullYear(expires.getFullYear() + 1);
     document.cookie = `cookie_consent=accepted; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
-    
+
     applyConsent(prefs);
     setIsVisible(false);
   };
@@ -114,7 +114,7 @@ const CookieConsent = () => {
 
             <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-4">
               <p className="text-sm text-blue-800">
-                <strong>Your Privacy Matters:</strong> We respect your data rights under GDPR and CPRA. 
+                <strong>Your Privacy Matters:</strong> We respect your data rights under GDPR and CPRA.
                 You can customize your cookie preferences or accept/reject all non-essential cookies.
               </p>
             </div>
@@ -143,18 +143,21 @@ const CookieConsent = () => {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleAcceptAll}
+                data-cy="cookie-accept-all"
                 className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 font-medium text-sm"
               >
                 Accept All
               </button>
               <button
                 onClick={handleRejectNonEssential}
+                data-cy="cookie-reject-non-essential"
                 className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-md hover:bg-gray-400 font-medium text-sm"
               >
                 Reject Non-Essential
               </button>
               <button
                 onClick={() => setShowCustomize(true)}
+                data-cy="cookie-customize"
                 className="flex-1 bg-white border-2 border-gray-300 text-gray-700 py-3 px-4 rounded-md hover:bg-gray-50 font-medium text-sm"
               >
                 Customize
@@ -162,7 +165,7 @@ const CookieConsent = () => {
             </div>
 
             <p className="text-xs text-gray-500 text-center mt-4">
-              By clicking "Accept All", you consent to our use of cookies. 
+              By clicking "Accept All", you consent to our use of cookies.
               Learn more in our{' '}
               <a href="/cookie-policy" className="text-blue-600 hover:underline">
                 Cookie Policy
@@ -178,7 +181,7 @@ const CookieConsent = () => {
           // Customize screen
           <div className="p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Customize Cookie Preferences</h2>
-            
+
             <div className="space-y-4 mb-6">
               {/* Essential Cookies */}
               <div className="border rounded-lg p-4 bg-gray-50">
@@ -250,6 +253,7 @@ const CookieConsent = () => {
               </button>
               <button
                 onClick={handleSaveCustom}
+                data-cy="cookie-save-preferences"
                 className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 font-medium text-sm"
               >
                 Save Preferences

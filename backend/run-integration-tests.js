@@ -23,7 +23,14 @@ const tests = [
   'tests/integration/audit-logs.test.js',
   'tests/integration/data-requests-export.test.js',
   'tests/integration/data-requests-delete.test.js',
-  'tests/integration/data-requests-api.test.js'
+  'tests/integration/data-requests-api.test.js',
+  'tests/integration/notices-metadata.test.js',
+  'tests/integration/notices-history.test.js',
+  'tests/integration/notices-download.test.js',
+  'tests/integration/notices-download-tracking.test.js',
+  'tests/integration/templates-save.test.js',
+  'tests/integration/templates-load.test.js',
+  'tests/integration/templates-usage.test.js'
 ];
 
 let currentTest = 0;

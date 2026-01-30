@@ -128,6 +128,7 @@ function DocumentSelector() {
               onKeyDown={(e) => e.key === 'Enter' && handleCardClick(doc.id)}
               role="button"
               tabIndex={0}
+              data-cy={`document-card-${doc.id}`}
               aria-label={`Select ${doc.name}`}
             >
               <div className="card-icon">

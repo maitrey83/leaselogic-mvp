@@ -11,6 +11,9 @@ const userProfilesRoutes = require('./routes/userProfiles');
 const sessionsRoutes = require('./routes/sessions');
 const auditLogsRoutes = require('./routes/auditLogs');
 const dataRequestsRoutes = require('./routes/dataRequests');
+const propertiesRoutes = require('./routes/properties');
+const noticesRoutes = require('./routes/notices');
+const templatesRoutes = require('./routes/templates');
 const geoRestriction = require('./middleware/geoRestriction');
 
 const app = express();
@@ -31,6 +34,9 @@ app.use('/api/profiles', userProfilesRoutes);
 app.use('/api/sessions', sessionsRoutes);
 app.use('/api/audit', auditLogsRoutes);
 app.use('/api/data-requests', dataRequestsRoutes);
+app.use('/api/properties', propertiesRoutes);
+app.use('/api/notices', noticesRoutes);
+app.use('/api/templates', templatesRoutes);
 
 // Root route
 app.get('/', (req, res) => {
@@ -43,7 +49,10 @@ app.get('/', (req, res) => {
       pdf_generate: '/api/pdf/generate',
       legal_documents: '/api/legal/active',
       auth_register: '/api/auth/register',
-      auth_login: '/api/auth/login'
+      auth_login: '/api/auth/login',
+      properties: '/api/properties',
+      notices: '/api/notices',
+      templates: '/api/templates'
     }
   });
 });
