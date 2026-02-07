@@ -45,13 +45,16 @@ export const AuthProvider = ({ children }) => {
 
       // Validate token by fetching current user
       const data = await authService.getCurrentUser();
-      setUser(data.user);
+      setUser(data);
     } catch (err) {
       console.error('[AuthContext] Check auth failed:', err);
       setUser(null);
       setError(err.message);
-      // Clear invalid token
-      localStorage.removeItem('authToken');
+      // Only clear token on 401 (invalid/expired token)
+      // Preserve token on transient errors (404, 500) so next load can retry
+      if (err.status === 401) {
+        localStorage.removeItem('authToken');
+      }
     } finally {
       setLoading(false);
     }

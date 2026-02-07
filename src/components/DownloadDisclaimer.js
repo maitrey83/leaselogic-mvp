@@ -72,6 +72,7 @@ const DownloadDisclaimer = ({ onAccept, onCancel, isPreview = false, isPurchase 
           <label className="flex items-start space-x-2">
             <input
               type="checkbox"
+              data-cy="disclaimer-checkbox"
               checked={accepted}
               onChange={(e) => setAccepted(e.target.checked)}
               className="mt-1 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
@@ -87,17 +88,19 @@ const DownloadDisclaimer = ({ onAccept, onCancel, isPreview = false, isPurchase 
 
         <div className="mt-6 flex space-x-3">
           <button
+            data-cy="disclaimer-cancel-btn"
             onClick={onCancel}
             className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 text-sm"
           >
             Cancel
           </button>
           <button
+            data-cy="disclaimer-accept-btn"
             onClick={handleAccept}
             disabled={!accepted}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${
-              accepted 
-                ? 'bg-red-600 text-white hover:bg-red-700' 
+              accepted
+                ? 'bg-red-600 text-white hover:bg-red-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >

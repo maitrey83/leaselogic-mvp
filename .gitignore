@@ -12,6 +12,7 @@
 /backend/.env.example
 
 
+
 # Dependencies
 node_modules
 
@@ -22,6 +23,9 @@ node_modules
 # Misc
 .DS_Store
 *.log
+
+# Claude session memory (personal, not for git)
+.claude/
 
 # Tokens/Secrets
 LeaseLogicToken
@@ -46,3 +50,4 @@ backend/archive/
 backend/MANUAL-TEST-CASES.md
 backend/SUBSCRIPTION-ENDPOINT-STATUS.md
 /docs
+TESTS/

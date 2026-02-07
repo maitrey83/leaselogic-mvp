@@ -121,7 +121,9 @@ const getCurrentUser = async () => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to get current user');
+      const error = new Error(data.error || 'Failed to get current user');
+      error.status = response.status;
+      throw error;
     }
 
     return data;

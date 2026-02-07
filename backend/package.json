@@ -4,7 +4,7 @@
   "description": "LeaseLogic Backend API",
   "main": "src/server.js",
   "scripts": {
-    "start": "PORT=5001 node src/server.js",
+    "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "build": "echo 'No build step required'",
     "test": "jest",

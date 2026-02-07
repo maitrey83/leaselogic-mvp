@@ -1,10 +1,19 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const PdfGenerator = require('../services/PdfGenerator');
 const { generateNoticeHTML } = require('../templates/noticeTemplate');
+
+let stripe;
+if (process.env.STRIPE_SECRET_KEY) {
+  stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+} else {
+  console.warn('STRIPE_SECRET_KEY not set - payment endpoints will not work');
+}
 
 
 
 const createPaymentIntent = async (req, res) => {
+  if (!stripe) {
+    return res.status(503).json({ error: 'Payment service not configured' });
+  }
   try {
     const { amount = 999 } = req.body; // $9.99 in cents
 
@@ -28,6 +37,9 @@ const createPaymentIntent = async (req, res) => {
 };
 
 const verifyPaymentAndGeneratePDF = async (req, res) => {
+  if (!stripe) {
+    return res.status(503).json({ error: 'Payment service not configured' });
+  }
   try {
     const { paymentIntentId, formData } = req.body;
 

@@ -17,10 +17,39 @@ const templatesRoutes = require('./routes/templates');
 const geoRestriction = require('./middleware/geoRestriction');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
+
+// CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://leaselogic-mvp.vercel.app',
+];
+
+// Allow additional origins via env var (comma-separated)
+if (process.env.CORS_ALLOWED_ORIGINS) {
+  process.env.CORS_ALLOWED_ORIGINS.split(',').forEach(origin => {
+    allowedOrigins.push(origin.trim());
+  });
+}
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, health checks)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked request from origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(geoRestriction); // Apply geo-restriction to all routes
 

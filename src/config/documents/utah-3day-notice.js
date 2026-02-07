@@ -180,6 +180,7 @@ export default {
       label: 'Date of Notice Issuance',
       type: 'date',
       group: 'dates',
+      defaultValue: 'today',
       required: true,
       validation: {
         required: true,

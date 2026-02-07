@@ -17,15 +17,23 @@ class PdfGenerator {
     let browser = null;
 
     try {
-      browser = await puppeteer.launch({
+      const launchOptions = {
         headless: 'new',
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
-          '--disable-gpu'
+          '--disable-gpu',
+          '--single-process'
         ]
-      });
+      };
+
+      // Use system Chromium on Render (set PUPPETEER_EXECUTABLE_PATH env var)
+      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+      }
+
+      browser = await puppeteer.launch(launchOptions);
 
       const page = await browser.newPage();
       await page.setContent(htmlContent, {
