@@ -14,7 +14,7 @@ async function checkMigrations() {
   console.log(`${c.b}🔍 Migration Status Check${c.x}\n`);
 
   // Check which tables exist
-  const tables = ['consent_logs', 'legal_documents', 'audit_logs', 'data_requests', 'users', 'user_profiles', 'sessions', 'properties', 'notices', 'notice_templates'];
+  const tables = ['consent_logs', 'legal_documents', 'audit_logs', 'data_requests', 'users', 'user_profiles', 'sessions', 'properties', 'notices', 'notice_templates', 'payments', 'subscriptions'];
   const status = {};
 
   for (const table of tables) {
@@ -106,6 +106,20 @@ async function checkMigrations() {
         pending.push(file);
       } else {
         migrationStatus = `${c.g}✅ Applied (notice_templates table exists)${c.x}`;
+      }
+    } else if (file.includes('014')) {
+      if (!status.payments) {
+        migrationStatus = `${c.r}❌ NEEDS TO RUN - payments table${c.x}`;
+        pending.push(file);
+      } else {
+        migrationStatus = `${c.g}✅ Applied (payments table exists)${c.x}`;
+      }
+    } else if (file.includes('015')) {
+      if (!status.subscriptions) {
+        migrationStatus = `${c.r}❌ NEEDS TO RUN - subscriptions table${c.x}`;
+        pending.push(file);
+      } else {
+        migrationStatus = `${c.g}✅ Applied (subscriptions table exists)${c.x}`;
       }
     }
 

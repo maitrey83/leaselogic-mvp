@@ -8,6 +8,7 @@ import DisclaimerBanner from './components/DisclaimerBanner';
 import CookieConsent from './components/CookieConsent';
 import Footer from './components/Footer';
 import DocumentSelector from './components/DocumentSelector';
+import LandingPage from './pages/LandingPage';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import CookiePolicy from './pages/CookiePolicy';
@@ -287,21 +288,11 @@ function App() {
           } />
         </Route>
 
-        {/* Home page - Document selector or redirect to dashboard */}
-        <Route path="/" element={
-          DOCUMENT_SELECTOR_ENABLED ? (
-            <GeoRestriction>
-              <CookieConsent />
-              <DocumentSelector />
-              <Footer />
-            </GeoRestriction>
-          ) : (
-            <Navigate to="/dashboard" replace />
-          )
-        } />
+        {/* Home page - Landing page (handles auth redirect internally) */}
+        <Route path="/" element={<LandingPage />} />
 
-        {/* Catch-all redirect to dashboard */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        {/* Catch-all redirect to landing page */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
   );

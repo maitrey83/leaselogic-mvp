@@ -15,6 +15,7 @@ const propertiesRoutes = require('./routes/properties');
 const noticesRoutes = require('./routes/notices');
 const templatesRoutes = require('./routes/templates');
 const geoRestriction = require('./middleware/geoRestriction');
+const webhookRoutes = require('./routes/webhooks');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -50,6 +51,11 @@ const corsOptions = {
 
 // Middleware
 app.use(cors(corsOptions));
+
+// Stripe webhooks MUST be mounted before express.json() — signature
+// verification requires the raw request body (Task 4.5/4.6)
+app.use('/api/webhooks', webhookRoutes);
+
 app.use(express.json());
 app.use(geoRestriction); // Apply geo-restriction to all routes
 
