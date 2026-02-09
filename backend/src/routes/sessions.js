@@ -49,7 +49,7 @@ router.delete('/', authenticateUser, async (req, res) => {
  * POST /api/sessions/cleanup
  * Manual cleanup of expired sessions (admin only)
  */
-router.post('/cleanup', async (req, res) => {
+router.post('/cleanup', authenticateUser, async (req, res) => {
   try {
     const deletedCount = await sessions.cleanupExpired();
     res.json({ message: 'Cleanup complete', deleted: deletedCount });
