@@ -31,6 +31,9 @@ node_modules
 LeaseLogicToken
 LeaseLogicToken.txt
 
+# Puppeteer Chrome cache (installed at build time on Render)
+backend/.cache/
+
 # Test artifacts
 coverage/
 *.pdf

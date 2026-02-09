@@ -11,29 +11,40 @@ class PdfGenerator {
    */
   static findChromePath() {
     if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-      // Explicit override always wins (if it exists on disk)
       if (fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
         return process.env.PUPPETEER_EXECUTABLE_PATH;
       }
     }
 
-    // Search the Puppeteer cache directory for installed Chrome
-    const cacheDir = path.join(
-      process.env.PUPPETEER_CACHE_DIR || path.join(require('os').homedir(), '.cache', 'puppeteer'),
-      'chrome'
-    );
+    // Candidate cache directories — project-local first (Render), then home dir
+    const candidateDirs = [
+      path.join(__dirname, '..', '..', '.cache', 'puppeteer', 'chrome'),  // backend/.cache/puppeteer/chrome
+      path.join(require('os').homedir(), '.cache', 'puppeteer', 'chrome'),
+    ];
 
-    if (fs.existsSync(cacheDir)) {
-      const versions = fs.readdirSync(cacheDir).filter(d => d.startsWith('linux-'));
-      if (versions.length > 0) {
-        const chromePath = path.join(cacheDir, versions[0], 'chrome-linux64', 'chrome');
-        if (fs.existsSync(chromePath)) {
-          return chromePath;
+    if (process.env.PUPPETEER_CACHE_DIR) {
+      candidateDirs.unshift(path.join(process.env.PUPPETEER_CACHE_DIR, 'chrome'));
+    }
+
+    for (const cacheDir of candidateDirs) {
+      if (!fs.existsSync(cacheDir)) continue;
+      const versions = fs.readdirSync(cacheDir).filter(d => d.startsWith('linux-') || d.startsWith('mac-') || d.startsWith('win'));
+      if (versions.length === 0) continue;
+      // Try common Chrome binary locations per platform
+      const binPaths = [
+        path.join(cacheDir, versions[0], 'chrome-linux64', 'chrome'),
+        path.join(cacheDir, versions[0], 'chrome-mac-x64', 'Google Chrome for Testing.app', 'Contents', 'MacOS', 'Google Chrome for Testing'),
+        path.join(cacheDir, versions[0], 'chrome-mac-arm64', 'Google Chrome for Testing.app', 'Contents', 'MacOS', 'Google Chrome for Testing'),
+      ];
+      for (const binPath of binPaths) {
+        if (fs.existsSync(binPath)) {
+          console.log(`Chrome found at: ${binPath}`);
+          return binPath;
         }
       }
     }
 
-    // Fall back to Puppeteer's default (works locally on macOS/Windows)
+    console.warn('Chrome not found in any cache directory, falling back to Puppeteer default');
     return undefined;
   }
 
