@@ -1,6 +1,42 @@
 const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
 
 class PdfGenerator {
+  /**
+   * Find the Chrome executable installed by Puppeteer.
+   * On Render, the cache lives at /opt/render/.cache/puppeteer and the
+   * version directory name changes with each Puppeteer update, so we
+   * resolve it dynamically rather than hard-coding a glob in an env var.
+   */
+  static findChromePath() {
+    if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+      // Explicit override always wins (if it exists on disk)
+      if (fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
+        return process.env.PUPPETEER_EXECUTABLE_PATH;
+      }
+    }
+
+    // Search the Puppeteer cache directory for installed Chrome
+    const cacheDir = path.join(
+      process.env.PUPPETEER_CACHE_DIR || path.join(require('os').homedir(), '.cache', 'puppeteer'),
+      'chrome'
+    );
+
+    if (fs.existsSync(cacheDir)) {
+      const versions = fs.readdirSync(cacheDir).filter(d => d.startsWith('linux-'));
+      if (versions.length > 0) {
+        const chromePath = path.join(cacheDir, versions[0], 'chrome-linux64', 'chrome');
+        if (fs.existsSync(chromePath)) {
+          return chromePath;
+        }
+      }
+    }
+
+    // Fall back to Puppeteer's default (works locally on macOS/Windows)
+    return undefined;
+  }
+
   static async generatePdf(htmlContent, options = {}) {
     const defaultOptions = {
       format: 'A4',
@@ -28,9 +64,9 @@ class PdfGenerator {
         ]
       };
 
-      // Use system Chromium on Render (set PUPPETEER_EXECUTABLE_PATH env var)
-      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+      const chromePath = PdfGenerator.findChromePath();
+      if (chromePath) {
+        launchOptions.executablePath = chromePath;
       }
 
       browser = await puppeteer.launch(launchOptions);

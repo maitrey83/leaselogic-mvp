@@ -12,8 +12,6 @@ services:
         value: production
       - key: NODE_VERSION
         value: 20.20.0
-      - key: PUPPETEER_EXECUTABLE_PATH
-        value: /opt/render/.cache/puppeteer/chrome/linux-*/chrome-linux64/chrome
       - key: REACT_APP_SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
