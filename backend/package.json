@@ -4,6 +4,7 @@
   "description": "LeaseLogic Backend API",
   "main": "src/server.js",
   "scripts": {
+    "postinstall": "npx puppeteer browsers install chrome",
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "build": "echo 'No build step required'",
