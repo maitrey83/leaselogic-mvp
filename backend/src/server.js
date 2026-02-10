@@ -101,7 +101,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});
+
+// Graceful shutdown — close Chrome before exit
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down...');
+  const PdfGenerator = require('./services/PdfGenerator');
+  await PdfGenerator.close();
+  server.close(() => process.exit(0));
 });
