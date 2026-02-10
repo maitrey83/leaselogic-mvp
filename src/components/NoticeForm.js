@@ -208,24 +208,17 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment, doc
         const a = document.createElement('a');
         a.href = url;
         a.download = `${documentType}-final.pdf`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
 
-        // Use MouseEvent to force download
-        const clickEvent = new MouseEvent('click', {
-          view: window,
-          bubbles: true,
-          cancelable: true
-        });
-
-        a.dispatchEvent(clickEvent);
-
-        // Cleanup
         setTimeout(() => {
           window.URL.revokeObjectURL(url);
         }, 100);
 
         setShowFinalDisclaimer(false);
 
-        // Notify parent of successful download
         if (onDownloadSuccess) {
           onDownloadSuccess();
         }
@@ -254,14 +247,10 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment, doc
         const a = document.createElement('a');
         a.href = url;
         a.download = `${documentType}-preview.pdf`;
-
-        const clickEvent = new MouseEvent('click', {
-          view: window,
-          bubbles: true,
-          cancelable: true
-        });
-
-        a.dispatchEvent(clickEvent);
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
 
         setTimeout(() => {
           window.URL.revokeObjectURL(url);
@@ -269,7 +258,6 @@ const NoticeForm = ({ formData, setFormData, setShowPreview, setShowPayment, doc
 
         setShowPreviewDisclaimer(false);
 
-        // Notify parent of successful download
         if (onDownloadSuccess) {
           onDownloadSuccess();
         }
