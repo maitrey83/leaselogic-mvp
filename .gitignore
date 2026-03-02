@@ -24,8 +24,17 @@ node_modules
 .DS_Store
 *.log
 
-# Claude session memory (personal, not for git)
-.claude/
+# Claude Code (commands are tracked, personal config is not)
+.claude/settings.local.json
+.claude/projects/
+.claude/current-focus.md
+.claude/session-log.md
+.claude/project-context.md
+.claude/quick-start.md
+.claude/README.md
+
+# MCP server config (contains access tokens)
+.mcp.json
 
 # Tokens/Secrets
 LeaseLogicToken
